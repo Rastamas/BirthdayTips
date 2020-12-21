@@ -10,10 +10,11 @@ namespace BabyTips
 {
     class Program
     {
+        private const int PerfectScore = 4;
+
         private const int PositionsToAward = 3;
         private static readonly Dictionary<int, int> Scores = new Dictionary<int, int>
         {
-            { 0, 4 },
             { 1, 3 },
             { 2, 2 },
             { 3, 1 }
@@ -62,14 +63,18 @@ namespace BabyTips
             records = CalculateWeightScore(records, actualResult.WeightInGrams);
             records = CalculateHeightScore(records, actualResult.HeightInCm);
 
+            int i = 1;
+
             foreach (var record in records.OrderByDescending(r => r.Scores.Sum(score => score.Value)))
             {
-                Console.Write($"{record.Name}: {record.Scores.Sum(score => score.Value)} ");
+                Console.Write($"{i++}.{GetPadding(i)} {record.Name}: {record.Scores.Sum(score => score.Value)} ");
                 Console.WriteLine(string.Join(' ', record.Scores.Select(s => $"({s.Key} - {s.Value})")));
             }
 
             Console.ReadLine();
         }
+
+        private static string GetPadding(int i) => i < 11 ? " " : string.Empty;
 
         private static List<Guess> CalculateHeightScore(List<Guess> guesses, int heightInCm)
         {
@@ -129,7 +134,9 @@ namespace BabyTips
             {
                 var isPerfectGuess = groupedGuess.Key == 0;
 
-                var scoreToGive = Scores[PositionsToAward - positionsToAward + (isPerfectGuess ? 0 : 1)];
+                var scoreToGive = isPerfectGuess
+                    ? PerfectScore
+                    : Scores[PositionsToAward - positionsToAward + 1];
 
                 foreach (var guess in groupedGuess)
                 {
