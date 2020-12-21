@@ -11,8 +11,7 @@ namespace BabyTips
     class Program
     {
         private const int PerfectScore = 4;
-
-        private const int PositionsToAward = 3;
+        private const int MinPositionsToAward = 3;
         private static readonly Dictionary<int, int> Scores = new Dictionary<int, int>
         {
             { 1, 3 },
@@ -39,10 +38,8 @@ namespace BabyTips
                 Console.WriteLine("Add meg Anna születési dátumát (pl. 2021/01/23)");
                 actualResult.Birthday = DateTime.Parse(Console.ReadLine());
 
-
                 Console.WriteLine("Add meg Anna születési súlyát grammban(pl. 3200)");
                 actualResult.WeightInGrams = int.Parse(Console.ReadLine());
-
 
                 Console.WriteLine("Add meg Anna születési hosszát cm-ben (pl. 53)");
                 actualResult.HeightInCm = int.Parse(Console.ReadLine());
@@ -55,26 +52,26 @@ namespace BabyTips
                 Delimiter = ","
             });
 
-            var records = csvReader.GetRecords<Guess>().ToList();
+            var guesses = csvReader.GetRecords<Guess>().ToList();
 
-            Console.WriteLine("Tippek száma: " + records.Count);
+            Console.WriteLine("Tippek száma: " + guesses.Count);
 
-            records = CalculateBirthdayScore(records, actualResult.Birthday);
-            records = CalculateWeightScore(records, actualResult.WeightInGrams);
-            records = CalculateHeightScore(records, actualResult.HeightInCm);
+            guesses = CalculateBirthdayScore(guesses, actualResult.Birthday);
+            guesses = CalculateWeightScore(guesses, actualResult.WeightInGrams);
+            guesses = CalculateHeightScore(guesses, actualResult.HeightInCm);
 
             int i = 1;
 
-            foreach (var record in records.OrderByDescending(r => r.Scores.Sum(score => score.Value)))
+            foreach (var record in guesses.OrderByDescending(r => r.Scores.Sum(score => score.Value)))
             {
-                Console.Write($"{i++}.{GetPadding(i)} {record.Name}: {record.Scores.Sum(score => score.Value)} ");
+                Console.Write($"{PadRight(i++)} {record.Name}: {record.Scores.Sum(score => score.Value)} ");
                 Console.WriteLine(string.Join(' ', record.Scores.Select(s => $"({s.Key} - {s.Value})")));
             }
 
             Console.ReadLine();
         }
 
-        private static string GetPadding(int i) => i < 11 ? " " : string.Empty;
+        private static string PadRight(int i) => i + "." + (i < 11 ? " " : string.Empty);
 
         private static List<Guess> CalculateHeightScore(List<Guess> guesses, int heightInCm)
         {
@@ -124,11 +121,11 @@ namespace BabyTips
             return guesses;
         }
 
-        private static List<Guess> CalculateScores(Dictionary<string, int> incorrectGuesses, List<Guess> guesses, string category)
+        private static List<Guess> CalculateScores(Dictionary<string, int> guessDifferencesByName, List<Guess> guesses, string category)
         {
-            var positionsToAward = PositionsToAward;
+            var positionsToAward = MinPositionsToAward;
 
-            var groupedGuesses = incorrectGuesses.GroupBy(x => x.Value).OrderBy(x => x.Key);
+            var groupedGuesses = guessDifferencesByName.GroupBy(x => x.Value).OrderBy(x => x.Key);
 
             foreach (var groupedGuess in groupedGuesses)
             {
@@ -136,7 +133,7 @@ namespace BabyTips
 
                 var scoreToGive = isPerfectGuess
                     ? PerfectScore
-                    : Scores[PositionsToAward - positionsToAward + 1];
+                    : Scores[MinPositionsToAward - positionsToAward + 1];
 
                 foreach (var guess in groupedGuess)
                 {
