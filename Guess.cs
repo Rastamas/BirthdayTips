@@ -19,7 +19,7 @@ namespace BabyTips
         public int HeightInCm { get; set; }
 
         [Ignore]
-        public int Score { get; set; }
+        public Dictionary<string, int> Scores = new();
 
     }
 }

@@ -48,7 +48,7 @@ namespace BabyTips
 
             } while (!File.Exists(path));
 
-            var csvReader = new CsvReader(new StreamReader(path), new CsvConfiguration (CultureInfo.InvariantCulture)
+            var csvReader = new CsvReader(new StreamReader(path), new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 Delimiter = ","
@@ -59,13 +59,48 @@ namespace BabyTips
             Console.WriteLine("Tippek száma: " + records.Count);
 
             records = CalculateBirthdayScore(records, actualResult.Birthday);
+            records = CalculateWeightScore(records, actualResult.WeightInGrams);
+            records = CalculateHeightScore(records, actualResult.HeightInCm);
 
-            foreach (var record in records)
+            foreach (var record in records.OrderByDescending(r => r.Scores.Sum(score => score.Value)))
             {
-                Console.WriteLine(record.Name + ": " + record.Score);
+                Console.Write($"{record.Name}: {record.Scores.Sum(score => score.Value)} ");
+                Console.WriteLine(string.Join(' ', record.Scores.Select(s => $"({s.Key} - {s.Value})")));
             }
 
             Console.ReadLine();
+        }
+
+        private static List<Guess> CalculateHeightScore(List<Guess> guesses, int heightInCm)
+        {
+            var incorrectGuesses = new Dictionary<string, int>();
+
+            foreach (var guess in guesses)
+            {
+                var diff = Math.Abs(heightInCm - guess.HeightInCm);
+
+                incorrectGuesses.Add(guess.Name, diff);
+            }
+
+            guesses = CalculateScores(incorrectGuesses, guesses, "Magasság");
+
+            return guesses;
+        }
+
+        private static List<Guess> CalculateWeightScore(List<Guess> guesses, int weightInGrams)
+        {
+            var incorrectGuesses = new Dictionary<string, int>();
+
+            foreach (var guess in guesses)
+            {
+                var diff = Math.Abs(weightInGrams - guess.WeightInGrams);
+
+                incorrectGuesses.Add(guess.Name, diff);
+            }
+
+            guesses = CalculateScores(incorrectGuesses, guesses, "Súly");
+
+            return guesses;
         }
 
         private static List<Guess> CalculateBirthdayScore(List<Guess> guesses, DateTime actualBirthday)
@@ -79,12 +114,12 @@ namespace BabyTips
                 incorrectGuesses.Add(guess.Name, diff);
             }
 
-            guesses = CalculateScores(incorrectGuesses, guesses);
+            guesses = CalculateScores(incorrectGuesses, guesses, "Születésnap");
 
             return guesses;
         }
 
-        private static List<Guess> CalculateScores(Dictionary<string, int> incorrectGuesses, List<Guess> guesses)
+        private static List<Guess> CalculateScores(Dictionary<string, int> incorrectGuesses, List<Guess> guesses, string category)
         {
             var positionsToAward = PositionsToAward;
 
@@ -94,11 +129,11 @@ namespace BabyTips
             {
                 var isPerfectGuess = groupedGuess.Key == 0;
 
-                var scoreToGive = Scores[PositionsToAward - positionsToAward + (isPerfectGuess ? 1 : 0)];
+                var scoreToGive = Scores[PositionsToAward - positionsToAward + (isPerfectGuess ? 0 : 1)];
 
                 foreach (var guess in groupedGuess)
                 {
-                    guesses.Single(g => g.Name == guess.Key).Score += scoreToGive;
+                    guesses.Single(g => g.Name == guess.Key).Scores.Add(category, scoreToGive);
                 }
 
                 positionsToAward -= groupedGuess.Count();
