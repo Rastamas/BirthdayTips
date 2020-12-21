@@ -10,13 +10,13 @@ namespace BabyTips
 {
     class Program
     {
-        private const int PerfectScore = 4;
-
+        private const int PositionsToAward = 3;
         private static readonly Dictionary<int, int> Scores = new Dictionary<int, int>
         {
-            {1, 3 },
-            {2, 2 },
-            {3, 1 }
+            { 0, 4 },
+            { 1, 3 },
+            { 2, 2 },
+            { 3, 1 }
         };
 
         static void Main(string[] args)
@@ -71,34 +71,30 @@ namespace BabyTips
         private static List<Guess> CalculateBirthdayScore(List<Guess> guesses, DateTime actualBirthday)
         {
             var incorrectGuesses = new Dictionary<string, int>();
-            var perfectGuessers = 0;
 
             foreach (var guess in guesses)
             {
                 var diff = Math.Abs((actualBirthday.Date - guess.Birthday.Date).Days);
 
-                if (diff == 0)
-                {
-                    guess.Score += PerfectScore;
-                    perfectGuessers++;
-                } else
-                {
-                    incorrectGuesses.Add(guess.Name, diff);
-                }
+                incorrectGuesses.Add(guess.Name, diff);
             }
 
-            var positionsToAward = Scores.Count - perfectGuessers;
+            guesses = CalculateScores(incorrectGuesses, guesses);
 
-            if (positionsToAward <= 0)
-            {
-                return guesses;
-            }
+            return guesses;
+        }
+
+        private static List<Guess> CalculateScores(Dictionary<string, int> incorrectGuesses, List<Guess> guesses)
+        {
+            var positionsToAward = PositionsToAward;
 
             var groupedGuesses = incorrectGuesses.GroupBy(x => x.Value).OrderBy(x => x.Key);
 
             foreach (var groupedGuess in groupedGuesses)
             {
-                var scoreToGive = Scores[Scores.Count - positionsToAward + 1];
+                var isPerfectGuess = groupedGuess.Key == 0;
+
+                var scoreToGive = Scores[PositionsToAward - positionsToAward + (isPerfectGuess ? 1 : 0)];
 
                 foreach (var guess in groupedGuess)
                 {
@@ -111,7 +107,6 @@ namespace BabyTips
                     break;
                 }
             }
-
 
             return guesses;
         }
