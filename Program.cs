@@ -36,7 +36,7 @@ namespace BabyTips
                     continue;
                 }
 
-                Console.WriteLine("Add meg Anna születési dátumát (pl. 2020/01/23)");
+                Console.WriteLine("Add meg Anna születési dátumát (pl. 2021/01/23)");
                 actualResult.Birthday = DateTime.Parse(Console.ReadLine());
 
 
