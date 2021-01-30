@@ -116,12 +116,12 @@ namespace BabyTips
                 incorrectGuesses.Add(guess.Name, diff);
             }
 
-            guesses = CalculateScores(incorrectGuesses, guesses, "Születésnap");
+            guesses = CalculateScores(incorrectGuesses, guesses, "Születésnap", 2);
 
             return guesses;
         }
 
-        private static List<Guess> CalculateScores(Dictionary<string, int> guessDifferencesByName, List<Guess> guesses, string category)
+        private static List<Guess> CalculateScores(Dictionary<string, int> guessDifferencesByName, List<Guess> guesses, string category, int multiplier = 1)
         {
             var positionsToAward = MinPositionsToAward;
 
@@ -137,7 +137,7 @@ namespace BabyTips
 
                 foreach (var guess in groupedGuess)
                 {
-                    guesses.Single(g => g.Name == guess.Key).Scores.Add(category, scoreToGive);
+                    guesses.Single(g => g.Name == guess.Key).Scores.Add(category, scoreToGive * multiplier);
                 }
 
                 positionsToAward -= groupedGuess.Count();
